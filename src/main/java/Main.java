@@ -1,5 +1,8 @@
+import matrix.MatrixMultiplication;
+
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Hello world!");
+        MatrixMultiplication m = new MatrixMultiplication(1024, 6834723);
+        m.multiplySequential();
     }
 }
