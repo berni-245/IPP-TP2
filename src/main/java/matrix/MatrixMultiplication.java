@@ -1,6 +1,5 @@
 package matrix;
 
-import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,8 +28,42 @@ public class MatrixMultiplication {
         System.out.println(result[0][0]);
     }
 
-    private void multiplyRowInRange(int startRowIdx, int chunkSize) {
-        for (int rowIdx = startRowIdx; rowIdx < chunkSize + startRowIdx; rowIdx++) {
+    public void multiplyParallel(int numThreads) {
+        if (numThreads > size) {
+            multiplySequential();
+            return;
+        }
+
+        initializeAllMatrix();
+
+        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+        int rowsPerThread = size / numThreads;
+        int remainder = size % numThreads;
+
+        int start = 0;
+        for (int i = 0; i < numThreads; i++) {
+            int end = start + rowsPerThread + (i < remainder ? 1 : 0); // hand remainder
+            int finalStart = start;
+            executor.submit(() -> multiplyRowInRange(finalStart, end));
+            start = end;
+        }
+
+        executor.shutdown();
+        try {
+            if (!executor.awaitTermination(1, TimeUnit.MINUTES)) {
+                executor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+
+        System.out.println(result[0][0]);
+    }
+
+    // endIdx exclusive
+    private void multiplyRowInRange(int startIdx, int endIdx) {
+        for (int rowIdx = startIdx; rowIdx < endIdx; rowIdx++) {
             for (int colIdx = 0; colIdx < size; colIdx++) {
                 for (int k = 0; k < size; k++) {
                     result[rowIdx][colIdx] += left[rowIdx][k] * right[k][colIdx];
