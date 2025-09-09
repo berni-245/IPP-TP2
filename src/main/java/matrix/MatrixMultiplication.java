@@ -42,10 +42,13 @@ public class MatrixMultiplication {
         }
 
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+        List<Future<?>> futures = new ArrayList<>();
+
         distributeChunksForAllThreads(
-                (start, end) -> executor.submit(() -> multiplyRowInRange(start, end))
+                (start, end) -> futures.add(executor.submit(() -> multiplyRowInRange(start, end)))
         );
 
+        waitForAll(futures);
         shutdownExecutor(executor);
 
         System.out.println(result[0][0]);
@@ -53,7 +56,8 @@ public class MatrixMultiplication {
 
     public void multiplyForkJoin() {
         ForkJoinPool pool = new ForkJoinPool(numThreads);
-        pool.invoke(new MultiplyTask(0, size, Math.max(20, size/numThreads)));
+        int threshold = Math.max(20, size/numThreads);
+        pool.invoke(new MultiplyTask(0, size, threshold));
 
         shutdownExecutor(pool);
 
@@ -67,14 +71,11 @@ public class MatrixMultiplication {
         }
 
         List<MultiplyTaskIterative> tasks = new ArrayList<>();
-
         distributeChunksForAllThreads(
                 (start, end) -> tasks.add(new MultiplyTaskIterative(start, end))
         );
 
-        ForkJoinPool pool = new ForkJoinPool(numThreads);
-        pool.submit(() -> ForkJoinTask.invokeAll(tasks));
-        shutdownExecutor(pool);
+        MultiplyTaskIterative.invokeAll(tasks);
 
         System.out.println(result[0][0]);
     }
@@ -148,7 +149,22 @@ public class MatrixMultiplication {
         }
     }
 
+    private void waitForAll(List<Future<?>> futures) {
+        for (Future<?> f : futures) {
+            try {
+                f.get(); // bloquea hasta que la tarea termine
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e.getCause());
+            }
+        }
+    }
+
+
     private void shutdownExecutor(ExecutorService executor) {
+        // Note: I don't use try-with-resources because that calls only shutdown() and I want
+        // to make sure the platform threads are free between methods using shutdownNow() as last resource
         executor.shutdown();
         try {
             if (!executor.awaitTermination(1, TimeUnit.MINUTES)) {
@@ -160,3 +176,4 @@ public class MatrixMultiplication {
         }
     }
 }
+

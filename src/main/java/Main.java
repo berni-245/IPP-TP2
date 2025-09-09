@@ -5,7 +5,7 @@ import java.time.Instant;
 
 public class Main {
     public static void main(String[] args) {
-        MatrixMultiplication m = new MatrixMultiplication(1024, 6834723, 8);
+        MatrixMultiplication m = new MatrixMultiplication(4*1024, 6834723, 8);
         Instant start = Instant.now();
 //        m.multiplySequential();
         Instant end = Instant.now();
@@ -21,16 +21,30 @@ public class Main {
 
         m.resetResultMatrix();
         start = Instant.now();
-        m.multiplyForkJoin();
+//        m.multiplyForkJoin();
         end = Instant.now();
         elapsedTime = Duration.between(start, end);
         System.out.printf("ForkJoin Rec %d ms\n", elapsedTime.toMillis());
 
         m.resetResultMatrix();
         start = Instant.now();
-        m.multiplyForkJoinIterative();
+//        m.multiplyForkJoinIterative();
         end = Instant.now();
         elapsedTime = Duration.between(start, end);
         System.out.printf("ForkJoin Iter %d ms\n", elapsedTime.toMillis());
+
+        m.resetResultMatrix();
+        start = Instant.now();
+        m.multiplyVirtualThreadsPerRow();
+        end = Instant.now();
+        elapsedTime = Duration.between(start, end);
+        System.out.printf("Virtual Parallel %d ms\n", elapsedTime.toMillis());
+
+        m.resetResultMatrix();
+        start = Instant.now();
+        m.multiplyVirtualThreadsPerChunks();
+        end = Instant.now();
+        elapsedTime = Duration.between(start, end);
+        System.out.printf("Virtual Parallel chunks %d ms\n", elapsedTime.toMillis());
     }
 }
