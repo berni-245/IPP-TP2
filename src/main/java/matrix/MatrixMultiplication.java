@@ -5,12 +5,10 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.*;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 public class MatrixMultiplication {
     private final int size;
     private final int numThreads;
-    private final Random rand;
     private final double[][] left;
     private final double[][] right;
     private final double[][] result;
@@ -21,7 +19,7 @@ public class MatrixMultiplication {
         left = new double[size][size];
         right = new double[size][size];
         result = new double[size][size];
-        rand = new Random(seed);
+        Random rand = new Random(seed);
         for (int rowIdx = 0; rowIdx < size; rowIdx++) {
             for (int colIdx = 0; colIdx < size; colIdx++) {
                 left[rowIdx][colIdx] = rand.nextDouble();
@@ -44,17 +42,9 @@ public class MatrixMultiplication {
         }
 
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-        int rowsPerThread = size / numThreads;
-        int remainder = size % numThreads;
-
-        int start = 0;
-        for (int i = 0; i < numThreads; i++) {
-            int end = start + rowsPerThread + (i < remainder ? 1 : 0); // handle remainder
-            // Borrar comentario: LA idea es que por cada tarea que sobre, se da una a cada thread hasta que no queden
-            int finalStart = start;
-            executor.submit(() -> multiplyRowInRange(finalStart, end));
-            start = end;
-        }
+        distributeChunksForAllThreads(
+                (start, end) -> executor.submit(() -> multiplyRowInRange(start, end))
+        );
 
         shutdownExecutor(executor);
 
@@ -76,17 +66,11 @@ public class MatrixMultiplication {
             return;
         }
 
-        int rowsPerThread = size / numThreads;
-        int remainder = size % numThreads;
-
         List<MultiplyTaskIterative> tasks = new ArrayList<>();
 
-        int start = 0;
-        for (int i = 0; i < numThreads; i++) {
-            int end = start + rowsPerThread + (i < remainder ? 1 : 0);
-            tasks.add(new MultiplyTaskIterative(start, end));
-            start = end;
-        }
+        distributeChunksForAllThreads(
+                (start, end) -> tasks.add(new MultiplyTaskIterative(start, end))
+        );
 
         ForkJoinPool pool = new ForkJoinPool(numThreads);
         pool.submit(() -> ForkJoinTask.invokeAll(tasks));
@@ -148,6 +132,19 @@ public class MatrixMultiplication {
             for (int colIdx = 0; colIdx < size; colIdx++) {
                 result[rowIdx][colIdx] = 0;
             }
+        }
+    }
+
+    private void distributeChunksForAllThreads(BiConsumer<Integer, Integer> chunkForThreadHandler) {
+        int rowsPerThread = size / numThreads;
+        int remainder = size % numThreads;
+
+        int start = 0;
+        for (int i = 0; i < numThreads; i++) {
+            int end = start + rowsPerThread + (i < remainder ? 1 : 0); // handle remainder
+            // Borrar comentario: LA idea es que por cada tarea que sobre, se da una a cada thread hasta que no queden
+            chunkForThreadHandler.accept(start, end);
+            start = end;
         }
     }
 
