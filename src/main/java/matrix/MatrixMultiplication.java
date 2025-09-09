@@ -50,7 +50,6 @@ public class MatrixMultiplication {
 
         waitForAll(futures);
         shutdownExecutor(executor);
-
         System.out.println(result[0][0]);
     }
 
@@ -60,23 +59,33 @@ public class MatrixMultiplication {
         pool.invoke(new MultiplyTask(0, size, threshold));
 
         shutdownExecutor(pool);
-
         System.out.println(result[0][0]);
     }
 
-    public void multiplyForkJoinIterative() {
-        if (numThreads > size) {
-            multiplySequential();
-            return;
+    public void multiplyVirtualThreadsPerRow() {
+        ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+        List<Future<?>> futures = new ArrayList<>();
+
+        for (int row = 0; row < size; row++) {
+            final int rowIdx = row;
+            futures.add(executor.submit(() -> multiplyRowInRange(rowIdx, rowIdx + 1)));
         }
 
-        List<MultiplyTaskIterative> tasks = new ArrayList<>();
+        waitForAll(futures);
+        shutdownExecutor(executor);
+        System.out.println(result[0][0]);
+    }
+
+    public void multiplyVirtualThreadsPerChunks() {
+        ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+        List<Future<?>> futures = new ArrayList<>();
+
         distributeChunksForAllThreads(
-                (start, end) -> tasks.add(new MultiplyTaskIterative(start, end))
+                (start, end) -> futures.add(executor.submit(() -> multiplyRowInRange(start, end)))
         );
 
-        MultiplyTaskIterative.invokeAll(tasks);
-
+        waitForAll(futures);
+        shutdownExecutor(executor);
         System.out.println(result[0][0]);
     }
 
@@ -99,21 +108,6 @@ public class MatrixMultiplication {
             }
             int middleRow = (startRow + endRow) / 2;
             invokeAll(new MultiplyTask(startRow, middleRow, threshold), new MultiplyTask(middleRow, endRow, threshold));
-        }
-    }
-
-    private class MultiplyTaskIterative extends RecursiveAction {
-        private final int startRow;
-        private final int endRow;
-
-        MultiplyTaskIterative(int startRow, int endRow) {
-            this.startRow = startRow;
-            this.endRow = endRow;
-        }
-
-        @Override
-        protected void compute() {
-            multiplyRowInRange(startRow, endRow);
         }
     }
 
@@ -176,4 +170,3 @@ public class MatrixMultiplication {
         }
     }
 }
-
