@@ -9,13 +9,15 @@ import java.util.function.BiConsumer;
 public class MatrixMultiplication {
     private final int size;
     private final int numThreads;
+    private final boolean showFirstCell;
     private final double[][] left;
     private final double[][] right;
     private final double[][] result;
 
-    public MatrixMultiplication(int size, int seed, int numThreads) {
+    public MatrixMultiplication(int size, int seed, int numThreads, boolean showFirstCell) {
         this.size = size;
         this.numThreads = numThreads;
+        this.showFirstCell = showFirstCell;
         left = new double[size][size];
         right = new double[size][size];
         result = new double[size][size];
@@ -32,7 +34,7 @@ public class MatrixMultiplication {
     public void multiplySequential() {
         multiplyRowInRange(0, size);
 
-        System.out.println(result[0][0]);
+        showFirstCellIfNeeded();
     }
 
     public void multiplyParallel() {
@@ -50,7 +52,7 @@ public class MatrixMultiplication {
 
         waitForAll(futures);
         shutdownExecutor(executor);
-        System.out.println(result[0][0]);
+        showFirstCellIfNeeded();
     }
 
     public void multiplyForkJoin() {
@@ -59,7 +61,7 @@ public class MatrixMultiplication {
         pool.invoke(new MultiplyTask(0, size, threshold));
 
         shutdownExecutor(pool);
-        System.out.println(result[0][0]);
+        showFirstCellIfNeeded();
     }
 
     public void multiplyVirtualThreadsPerRow() {
@@ -73,7 +75,7 @@ public class MatrixMultiplication {
 
         waitForAll(futures);
         shutdownExecutor(executor);
-        System.out.println(result[0][0]);
+        showFirstCellIfNeeded();
     }
 
     public void multiplyVirtualThreadsPerChunks() {
@@ -86,7 +88,7 @@ public class MatrixMultiplication {
 
         waitForAll(futures);
         shutdownExecutor(executor);
-        System.out.println(result[0][0]);
+        showFirstCellIfNeeded();
     }
 
     private class MultiplyTask extends RecursiveAction {
@@ -168,5 +170,10 @@ public class MatrixMultiplication {
             executor.shutdownNow();
             Thread.currentThread().interrupt();
         }
+    }
+
+    private void showFirstCellIfNeeded() {
+        if (showFirstCell)
+            System.out.printf("The content of [0][0] in the matrix is %.2f\n", result[0][0]);
     }
 }
