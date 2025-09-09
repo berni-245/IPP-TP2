@@ -139,7 +139,6 @@ public class MatrixMultiplication {
         int start = 0;
         for (int i = 0; i < numThreads; i++) {
             int end = start + rowsPerThread + (i < remainder ? 1 : 0); // handle remainder
-            // Borrar comentario: LA idea es que por cada tarea que sobre, se da una a cada thread hasta que no queden
             chunkForThreadHandler.accept(start, end);
             start = end;
         }

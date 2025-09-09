@@ -32,7 +32,7 @@ public class Main {
             multiply.run();
             Instant end = Instant.now();
             Duration elapsedTime = Duration.between(start, end);
-            System.out.printf("%d\n", elapsedTime.toMillis());
+            System.out.println(elapsedTime.toMillis());
             m.resetResultMatrix();
         }
     }
