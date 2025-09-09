@@ -4,8 +4,9 @@ import common.ParallelizationType;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Locale;
 
-public class Main {
+public class MatrixMain {
     public static void main(String[] args) {
         final int size = Integer.parseInt(System.getProperty("size"));
         final int seed = 6834723;
@@ -32,7 +33,8 @@ public class Main {
             multiply.run();
             Instant end = Instant.now();
             Duration elapsedTime = Duration.between(start, end);
-            System.out.println(elapsedTime.toMillis());
+            Locale.setDefault(Locale.ENGLISH);
+            System.out.printf("%.10f\n", elapsedTime.toNanos()/1000000000.0);
             m.resetResultMatrix();
         }
     }
