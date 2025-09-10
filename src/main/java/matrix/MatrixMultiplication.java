@@ -1,5 +1,7 @@
 package matrix;
 
+import common.Utils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -50,8 +52,8 @@ public class MatrixMultiplication {
                 (start, end) -> futures.add(executor.submit(() -> multiplyRowInRange(start, end)))
         );
 
-        waitForAll(futures);
-        shutdownExecutor(executor);
+        Utils.waitForAll(futures);
+        Utils.shutdownExecutor(executor);
         showFirstCellIfNeeded();
     }
 
@@ -60,7 +62,7 @@ public class MatrixMultiplication {
         int threshold = Math.max(20, size/numThreads);
         pool.invoke(new MultiplyTask(0, size, threshold));
 
-        shutdownExecutor(pool);
+        Utils.shutdownExecutor(pool);
         showFirstCellIfNeeded();
     }
 
@@ -73,12 +75,12 @@ public class MatrixMultiplication {
             futures.add(executor.submit(() -> multiplyRowInRange(rowIdx, rowIdx + 1)));
         }
 
-        waitForAll(futures);
-        shutdownExecutor(executor);
+        Utils.waitForAll(futures);
+        Utils.shutdownExecutor(executor);
         showFirstCellIfNeeded();
     }
 
-    public void multiplyVirtualThreadsPerChunks() {
+    public void multiplyVirtualThreadsPerChunk() {
         ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
         List<Future<?>> futures = new ArrayList<>();
 
@@ -86,8 +88,8 @@ public class MatrixMultiplication {
                 (start, end) -> futures.add(executor.submit(() -> multiplyRowInRange(start, end)))
         );
 
-        waitForAll(futures);
-        shutdownExecutor(executor);
+        Utils.waitForAll(futures);
+        Utils.shutdownExecutor(executor);
         showFirstCellIfNeeded();
     }
 
@@ -141,33 +143,6 @@ public class MatrixMultiplication {
             int end = start + rowsPerThread + (i < remainder ? 1 : 0); // handle remainder
             chunkForThreadHandler.accept(start, end);
             start = end;
-        }
-    }
-
-    private void waitForAll(List<Future<?>> futures) {
-        for (Future<?> f : futures) {
-            try {
-                f.get(); // bloquea hasta que la tarea termine
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } catch (ExecutionException e) {
-                throw new RuntimeException(e.getCause());
-            }
-        }
-    }
-
-
-    private void shutdownExecutor(ExecutorService executor) {
-        // Note: I don't use try-with-resources because that calls only shutdown() and I want
-        // to make sure the platform threads are free between methods using shutdownNow() as last resource
-        executor.shutdown();
-        try {
-            if (!executor.awaitTermination(1, TimeUnit.MINUTES)) {
-                executor.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            executor.shutdownNow();
-            Thread.currentThread().interrupt();
         }
     }
 

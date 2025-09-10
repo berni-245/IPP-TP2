@@ -23,7 +23,7 @@ public class MatrixMain {
             case PARALLEL -> runNTimesAndPrint(times, m, m::multiplyParallel);
             case FORK_JOIN -> runNTimesAndPrint(times, m, m::multiplyForkJoin);
             case VIRTUAL_PER_ROW -> runNTimesAndPrint(times, m, m::multiplyVirtualThreadsPerRow);
-            case VIRTUAL_PER_CHUNK -> runNTimesAndPrint(times, m, m::multiplyVirtualThreadsPerChunks);
+            case VIRTUAL_PER_CHUNK -> runNTimesAndPrint(times, m, m::multiplyVirtualThreadsPerChunk);
         }
     }
 
