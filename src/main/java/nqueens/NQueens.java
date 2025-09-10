@@ -38,6 +38,41 @@ public class NQueens {
         showResultIfNeeded();
     }
 
+    public void solveForkJoin() {
+        solutions.set(0);
+        ForkJoinPool pool = new ForkJoinPool(numThreads);
+        pool.invoke(new NQueensTask(0, new int[N]));
+        Utils.shutdownExecutor(pool);
+        showResultIfNeeded();
+    }
+
+    private class NQueensTask extends RecursiveAction {
+        private final int row;
+        private final int[] board;
+
+        NQueensTask(int row, int[] board) {
+            this.row = row;
+            this.board = board;
+        }
+
+        @Override
+        protected void compute() {
+            if (row == N) {
+                solutions.incrementAndGet();
+                return;
+            }
+            List<NQueensTask> subtasks = new ArrayList<>();
+            for (int col = 0; col < N; col++) {
+                if (isSafe(board, row, col)) {
+                    int[] newBoard = board.clone(); // to avoid sharing the same reference
+                    newBoard[row] = col;
+                    subtasks.add(new NQueensTask(row + 1, newBoard));
+                }
+            }
+            invokeAll(subtasks);
+        }
+    }
+
 
     public void solveVirtualThreadsPerRow() {
         solutions.set(0);
