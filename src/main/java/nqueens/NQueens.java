@@ -4,9 +4,7 @@ import common.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class NQueens {
@@ -29,26 +27,28 @@ public class NQueens {
     }
 
     public void solveParallel() {
-        ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+        solutions.set(0);
+        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
         List<Future<?>> futures = new ArrayList<>();
 
-
+        launchFutureInFirstRow(executor, futures);
 
         Utils.waitForAll(futures);
         Utils.shutdownExecutor(executor);
         showResultIfNeeded();
     }
 
-    public void solveForkJoin() {
-
-    }
 
     public void solveVirtualThreadsPerRow() {
+        solutions.set(0);
+        ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+        List<Future<?>> futures = new ArrayList<>();
 
-    }
+        launchFutureInFirstRow(executor, futures);
 
-    public void solveVirtualThreadsPerChunk() {
-
+        Utils.waitForAll(futures);
+        Utils.shutdownExecutor(executor);
+        showResultIfNeeded();
     }
 
     private boolean isSafe(int[] board, int row, int col) {
@@ -71,6 +71,17 @@ public class NQueens {
                 board[row] = col;
                 solve(row + 1, board);
             }
+        }
+    }
+
+    private void launchFutureInFirstRow(ExecutorService executor, List<Future<?>> futures) {
+        for (int col = 0; col < N; col++) {
+            final int firstCol = col;
+            futures.add(executor.submit(() -> {
+                int[] board = new int[N];
+                board[0] = firstCol;
+                solve(1, board);
+            }));
         }
     }
 

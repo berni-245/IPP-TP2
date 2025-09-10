@@ -19,10 +19,10 @@ public class NQueensMain {
 
         switch (type) {
             case SEQUENTIAL -> runNTimesAndPrint(times, nQueens::solveSequential);
-//            case PARALLEL -> runNTimesAndPrint(times, m, m::multiplyParallel);
-//            case FORK_JOIN -> runNTimesAndPrint(times, m, m::multiplyForkJoin);
-//            case VIRTUAL_PER_ROW -> runNTimesAndPrint(times, m, m::multiplyVirtualThreadsPerRow);
-//            case VIRTUAL_PER_CHUNK -> runNTimesAndPrint(times, m, m::multiplyVirtualThreadsPerChunks);
+            case PARALLEL -> runNTimesAndPrint(times, nQueens::solveParallel);
+//            case FORK_JOIN -> runNTimesAndPrint(times, nQueens::solveForkJoin);
+            case VIRTUAL_PER_ROW -> runNTimesAndPrint(times, nQueens::solveVirtualThreadsPerRow);
+            case VIRTUAL_PER_CHUNK -> throw new UnsupportedOperationException("This parallelization type is not implemented");
         }
     }
 
