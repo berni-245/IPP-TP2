@@ -10,7 +10,7 @@ public class Utils {
     public static void waitForAll(List<Future<?>> futures) {
         for (Future<?> f : futures) {
             try {
-                f.get(); // bloquea hasta que la tarea termine
+                f.get(); // blocks until the task is finished
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             } catch (ExecutionException e) {
