@@ -41,7 +41,8 @@ public class NQueens {
     public void solveForkJoin() {
         solutions.set(0);
         ForkJoinPool pool = new ForkJoinPool(numThreads);
-        pool.invoke(new NQueensTask(0, new int[N]));
+        int threshold = 6;
+        pool.invoke(new NQueensTask(0, new int[N], threshold));
         Utils.shutdownExecutor(pool);
         showResultIfNeeded();
     }
@@ -49,10 +50,12 @@ public class NQueens {
     private class NQueensTask extends RecursiveAction {
         private final int row;
         private final int[] board;
+        private final int threshold;
 
-        NQueensTask(int row, int[] board) {
+        NQueensTask(int row, int[] board, int threshold) {
             this.row = row;
             this.board = board;
+            this.threshold = threshold;
         }
 
         @Override
@@ -61,17 +64,24 @@ public class NQueens {
                 solutions.incrementAndGet();
                 return;
             }
+            if (row >= threshold) {
+                solve(row, board);
+                return;
+            }
             List<NQueensTask> subtasks = new ArrayList<>();
             for (int col = 0; col < N; col++) {
                 if (isSafe(board, row, col)) {
-                    int[] newBoard = board.clone(); // to avoid sharing the same reference
+                    int[] newBoard = board.clone();
                     newBoard[row] = col;
-                    subtasks.add(new NQueensTask(row + 1, newBoard));
+                    subtasks.add(new NQueensTask(row + 1, newBoard, threshold));
                 }
             }
-            invokeAll(subtasks);
+            if (!subtasks.isEmpty()) {
+                invokeAll(subtasks);
+            }
         }
     }
+
 
 
     public void solveVirtualThreadsPerRow() {
