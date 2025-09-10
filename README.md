@@ -1,7 +1,7 @@
 # Introducción a la Programación Paralela TP2
 
 ## 👋 Introducción
-En este código se puso a prueba 2 problemas clásicos de programación (multiplicación de matrices y el problema de las N-Reinas) y probó distintas estrategias de la api de concurrencia de java para paralelizarlos.
+En este código se puso a prueba 2 problemas clásicos de programación (multiplicación de matrices y el problema de las N-Reinas) y se probó distintas estrategias de la api de concurrencia de java para paralelizarlos.
 
 Este fue el [enunciado](docs/Enunciado%20TP2.pdf).
 
@@ -42,7 +42,7 @@ Argumentos exclusivos de `NQueensMain`:
 - `showResult`: true para mostrar la cantidad de soluciones tras correr el algoritmo, cualquier otra cosa (o no incluir) para false
 
 
-### ⭐ Ejemplo
+### ⭐ Ejemplos
 
 ```bash
 mvn clean package
